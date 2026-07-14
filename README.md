@@ -12,7 +12,7 @@ Raptor flowchart programs with code and output
 ## Factorial Program
 
 **Flowchart:**
-![Factorial Flowchart](factorial_flowchart.png)
+![Factorial Flowchart](factorial%20flowchart.png)
 
 **Output:**
-![Factorial Output](factorial_output.png)
+![Factorial Output](factorial%20output.png)
