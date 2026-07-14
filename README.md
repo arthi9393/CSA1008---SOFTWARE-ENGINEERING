@@ -8,3 +8,11 @@ Raptor flowchart programs with code and output
 
 **Output:**
 ![Fibonacci Output](Fibonacci%20Output.png)
+
+## Factorial Program
+
+**Flowchart:**
+![Factorial Flowchart](factorial_flowchart.png)
+
+**Output:**
+![Factorial Output](factorial_output.png)
