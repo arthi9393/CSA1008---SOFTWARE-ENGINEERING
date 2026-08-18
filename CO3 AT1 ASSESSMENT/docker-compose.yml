@@ -1,0 +1,16 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "4000:4000"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: scpms_user
+      POSTGRES_PASSWORD: scpms_pass
+      POSTGRES_DB: scpms_db
+    ports:
+      - "5432:5432"
