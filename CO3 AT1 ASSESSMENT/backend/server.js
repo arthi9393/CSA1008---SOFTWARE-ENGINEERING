@@ -1,6 +1,17 @@
-const http = require("http"); 
-const server = http.createServer((req, res) => { 
-  res.writeHead(200, { "Content-Type": "text/plain" }); 
-  res.end("SCPMS backend is running!"); 
-}); 
-server.listen(4000, () => console.log("Server running on port 4000")); 
+const express = require("express");
+const requisitionController = require("./src/controllers/requisitionController");
+
+const app = express();
+const PORT = 4000;
+
+app.use(express.json());
+
+app.get("/", (req, res) => {
+    res.send("SCPMS backend is running!");
+});
+
+app.get("/requisitions", requisitionController.listRequisitions);
+
+app.listen(PORT, () => {
+    console.log(`SCPMS backend running on port ${PORT}`);
+});
