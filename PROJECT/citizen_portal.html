@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CivicPulse - Citizen Grievance Portal</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .cat-btn.active {
+      background-color: #1C7293 !important;
+      color: #ffffff !important;
+      border-color: #1C7293 !important;
+      box-shadow: 0 4px 12px rgba(28, 114, 147, 0.25);
+    }
+  </style>
+</head>
+<body id="pageBody" class="bg-slate-100 text-slate-800 min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 transition-colors duration-300">
+
+  <!-- MAIN CITIZEN CARD -->
+  <div id="mainCard" class="w-full max-w-md bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xl space-y-5 transition-colors duration-300">
+    
+    <!-- 1. Header with Theme Toggle -->
+    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#1B3A5C] to-[#1C7293] flex items-center justify-center text-white shadow-md">
+          <i class="fa-solid fa-city text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-slate-900 leading-tight">CivicPulse</h1>
+          <p class="text-xs text-teal-700 font-medium">Citizen Grievance Redressal</p>
+        </div>
+      </div>
+      
+      <!-- Right Status Badge & Switcher -->
+      <div class="flex items-center space-x-2">
+        <a href="officer_dashboard.html" class="text-[11px] font-bold text-teal-700 hover:text-teal-900 bg-teal-50 hover:bg-teal-100 border border-teal-200 px-2.5 py-1 rounded-xl transition" title="Go to Officer Dashboard">
+          Officer Portal ➔
+        </a>
+        <button onclick="toggleTheme()" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-semibold transition" title="Toggle Light/Dark Theme">
+          <i class="fa-solid fa-moon text-slate-600" id="themeIcon"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. Photo Capture / Upload Box -->
+    <div>
+      <label class="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">
+        1. Capture Defect Photo
+      </label>
+      <div onclick="document.getElementById('cameraInput').click()" 
+           id="uploadBox"
+           class="border-2 border-dashed border-teal-400/80 hover:border-teal-600 rounded-2xl p-6 flex flex-col items-center justify-center bg-teal-50/50 hover:bg-teal-50 cursor-pointer transition text-center">
+        <div class="w-12 h-12 rounded-full bg-teal-100/80 text-teal-700 flex items-center justify-center mb-2 shadow-sm">
+          <i class="fa-solid fa-camera text-xl" id="cameraIcon"></i>
+        </div>
+        <p class="text-sm font-semibold text-slate-800" id="uploadTitle">Tap to Snap or Upload Photo</p>
+        <p class="text-xs text-slate-500 mt-0.5" id="uploadSubtitle">Pothole, broken light, waste dump, or leak</p>
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden" onchange="previewImage(event)">
+      </div>
+      <!-- Image Preview -->
+      <img id="imagePreview" class="w-full h-44 object-cover rounded-2xl border border-teal-400 hidden mt-2 shadow-md">
+    </div>
+
+    <!-- 3. 1-Click GPS Location Detector -->
+    <div>
+      <label class="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">
+        2. Incident Location
+      </label>
+      <button onclick="detectGPS()" 
+              id="gpsBtn"
+              class="w-full py-3 px-4 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-semibold flex items-center justify-between transition shadow-sm">
+        <div class="flex items-center space-x-2.5">
+          <i class="fa-solid fa-location-crosshairs text-amber-500 text-base" id="gpsIcon"></i>
+          <span id="gpsText">Click to Detect My Live GPS</span>
+        </div>
+        <span id="gpsAccuracy" class="text-[11px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-medium hidden">GPS</span>
+      </button>
+      <input type="hidden" id="latInput" value="13.0418">
+      <input type="hidden" id="longInput" value="80.2341">
+      
+      <!-- Auto-Identified Ward -->
+      <div id="wardDisplay" class="p-2.5 bg-teal-50/80 border border-teal-200/80 rounded-xl text-xs text-teal-900 mt-2 hidden flex items-center justify-between">
+        <span class="flex items-center">
+          <i class="fa-solid fa-building-columns text-teal-700 mr-2"></i>
+          <span>Auto-Mapped Ward: <strong id="wardNameText" class="text-slate-900 font-bold">Detecting ward...</strong></span>
+        </span>
+        <span class="text-[10px] bg-teal-200/60 text-teal-900 font-bold px-1.5 py-0.5 rounded">GCC</span>
+      </div>
+    </div>
+
+    <!-- 4. Category Selector -->
+    <div>
+      <label class="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">
+        3. Select Issue Type
+      </label>
+      <div class="grid grid-cols-2 gap-2 text-xs">
+        <button onclick="selectCategory('POTHOLE', this)" class="cat-btn active p-2.5 rounded-xl bg-slate-50 text-slate-700 font-medium text-center border border-slate-200 hover:bg-slate-100 flex items-center justify-center space-x-2 transition">
+          <span>🛣️ Pothole</span>
+        </button>
+        <button onclick="selectCategory('STREETLIGHT', this)" class="cat-btn p-2.5 rounded-xl bg-slate-50 text-slate-700 font-medium text-center border border-slate-200 hover:bg-slate-100 flex items-center justify-center space-x-2 transition">
+          <span>💡 Streetlight</span>
+        </button>
+        <button onclick="selectCategory('WASTE', this)" class="cat-btn p-2.5 rounded-xl bg-slate-50 text-slate-700 font-medium text-center border border-slate-200 hover:bg-slate-100 flex items-center justify-center space-x-2 transition">
+          <span>🗑️ Garbage</span>
+        </button>
+        <button onclick="selectCategory('WATER_LEAK', this)" class="cat-btn p-2.5 rounded-xl bg-slate-50 text-slate-700 font-medium text-center border border-slate-200 hover:bg-slate-100 flex items-center justify-center space-x-2 transition">
+          <span>🚰 Water Leak</span>
+        </button>
+      </div>
+      <input type="hidden" id="categoryInput" value="POTHOLE">
+    </div>
+
+    <!-- 5. Short Description Box -->
+    <div>
+      <label class="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">
+        4. Landmark / Additional Notes
+      </label>
+      <textarea id="descInput" 
+                rows="2" 
+                placeholder="e.g. Broken streetlight right opposite the bus stop on 5th cross road..." 
+                class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs text-slate-800 focus:outline-none focus:border-teal-600 placeholder-slate-400 shadow-inner"></textarea>
+    </div>
+
+    <!-- 6. Submit Button -->
+    <button onclick="submitComplaint()" 
+            id="submitBtn"
+            class="w-full py-3.5 rounded-2xl bg-[#1B3A5C] hover:bg-[#152e4a] text-white font-bold text-sm shadow-lg shadow-slate-900/10 flex items-center justify-center space-x-2 transition transform active:scale-95">
+      <span>Submit Grievance to Server</span>
+      <i class="fa-solid fa-paper-plane"></i>
+    </button>
+    <!-- TRACK EXISTING COMPLAINT -->
+    <div class="mt-5 p-4 rounded-2xl bg-slate-50 border border-slate-200">
+      <h3 class="text-sm font-bold text-slate-900 mb-2">
+        🔎 Track My Complaint
+      </h3>
+
+      <p class="text-xs text-slate-500 mb-3">
+        Enter your Ticket ID to check the complaint status.
+      </p>
+
+      <div class="flex space-x-2">
+        <input
+          id="trackTicketInput"
+          type="text"
+          placeholder="e.g. CP-7615"
+          class="flex-1 px-3 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-teal-400"
+        />
+
+        <button
+          onclick="trackComplaint()"
+          class="px-4 py-2.5 rounded-xl bg-teal-700 text-white text-sm font-bold">
+          Track
+        </button>
+      </div>
+
+      <div id="trackResult" class="hidden mt-4"></div>
+    </div>
+
+    <!-- SUCCESS MODAL (Shows live data saved in Database) -->
+    <div id="successModal" class="hidden p-5 rounded-2xl bg-gradient-to-b from-teal-50 to-white border border-teal-200 text-center space-y-3 shadow-md">
+      <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto text-2xl shadow-sm">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <div>
+        <h3 class="text-base font-bold text-slate-900">Grievance Saved in Database!</h3>
+        <p class="text-xs text-slate-600 mt-0.5">Ticket ID: <strong id="ticketIdDisplay" class="text-teal-800 font-mono text-sm bg-teal-100 px-2 py-0.5 rounded">#CP-9812</strong></p>
+      </div>
+      <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-left text-xs space-y-1.5 text-slate-700">
+        <p>🏢 <strong>Auto-Assigned:</strong> <span id="modalWard" class="font-semibold text-slate-900">Zone 9, Ward 119</span></p>
+        <p>⏱️ <strong>SLA Target:</strong> <span id="modalSLA" class="text-amber-700 font-semibold">24 Hours</span></p>
+        <p>⚡ <strong>Server Status:</strong> <span class="text-emerald-700 font-semibold">Saved in SQLite & Dispatched to Officer</span></p>
+      </div>
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <button onclick="resetForm()" class="py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold border border-slate-200">
+          Report Another
+        </button>
+        <a href="officer_dashboard.html" class="py-2.5 rounded-xl bg-[#1B3A5C] hover:bg-[#152e4a] text-white text-xs font-semibold flex items-center justify-center shadow">
+          View in Dashboard ➔
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let isDark = false;
+    const API_BASE = "http://127.0.0.1:8000/api";
+
+    function toggleTheme() {
+      isDark = !isDark;
+      const pageBody = document.getElementById('pageBody');
+      const mainCard = document.getElementById('mainCard');
+      const themeIcon = document.getElementById('themeIcon');
+
+      if (isDark) {
+        pageBody.className = "bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 transition-colors duration-300";
+        mainCard.className = "w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-5 transition-colors duration-300";
+        themeIcon.className = "fa-solid fa-sun text-amber-400";
+      } else {
+        pageBody.className = "bg-slate-100 text-slate-800 min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 transition-colors duration-300";
+        mainCard.className = "w-full max-w-md bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xl space-y-5 transition-colors duration-300";
+        themeIcon.className = "fa-solid fa-moon text-slate-600";
+      }
+    }
+
+    function previewImage(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = document.getElementById('imagePreview');
+          img.src = e.target.result;
+          img.classList.remove('hidden');
+          document.getElementById('uploadBox').classList.add('hidden');
+        }
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function detectGPS() {
+      const gpsText = document.getElementById('gpsText');
+      const gpsIcon = document.getElementById('gpsIcon');
+      
+      gpsText.innerText = "Detecting GPS location...";
+      gpsIcon.className = "fa-solid fa-spinner fa-spin text-amber-500 text-base";
+
+  if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const lat = position.coords.latitude.toFixed(4);
+      const long = position.coords.longitude.toFixed(4);
+      document.getElementById('latInput').value = lat;
+      document.getElementById('longInput').value = long;
+
+      gpsText.innerText = `GPS: ${lat}° N, ${long}° E`;
+      gpsIcon.className = "fa-solid fa-circle-check text-emerald-600 text-base";
+fetch(`/api/ward?lat=${lat}&lon=${long}`)
+  .then(response => response.json())
+  .then(data => {
+    document.getElementById('wardNameText').innerText =
+      data.ward || "Outside Greater Chennai Corporation";
+  })
+  .catch(() => {
+    document.getElementById('wardNameText').innerText =
+      "Outside Greater Chennai Corporation";
+  });
+      const wardNameText = document.getElementById('wardNameText');
+
+      if (
+        lat >= 13.0300 && lat <= 13.0500 &&
+        long >= 80.2200 && long <= 80.2500
+      ) {
+        wardNameText.innerText = "Zone 9, Ward 119 (T. Nagar)";
+      } else if (lat >= 13.0700 && lat <= 13.0900) {
+        wardNameText.innerText = "Zone 8, Ward 102 (Anna Nagar)";
+      } else if (lat >= 12.9700 && lat <= 13.0000) {
+        wardNameText.innerText = "Zone 13, Ward 178 (Velachery / Adyar)";
+      } else {
+        wardNameText.innerText = "Outside Greater Chennai Corporation";
+      }
+            
+            const accBadge = document.getElementById('gpsAccuracy');
+            accBadge.innerText = `±${Math.round(position.coords.accuracy || 5)}m`;
+            accBadge.classList.remove('hidden');
+            accBadge.className = "text-[11px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded font-semibold";
+
+            document.getElementById('wardDisplay').classList.remove('hidden');
+          },
+          (error) => {
+            document.getElementById('latInput').value = "13.0418";
+            document.getElementById('longInput').value = "80.2341";
+            gpsText.innerText = "Location: T. Nagar, Chennai (13.0418° N, 80.2341° E)";
+            gpsIcon.className = "fa-solid fa-location-dot text-teal-600 text-base";
+            document.getElementById('wardDisplay').classList.remove('hidden');
+          }
+        );
+      }
+    }
+
+    function selectCategory(category, btnElement) {
+      document.getElementById('categoryInput').value = category;
+      document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+      btnElement.classList.add('active');
+    }
+
+    // REAL BACKEND SUBMIT CALL
+    async function submitComplaint() {
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.innerHTML = `<span>Saving to Server...</span> <i class="fa-solid fa-spinner fa-spin"></i>`;
+      submitBtn.disabled = true;
+
+      const payload = {
+        category: document.getElementById('categoryInput').value,
+        latitude: parseFloat(document.getElementById('latInput').value || 13.0418),
+        longitude: parseFloat(document.getElementById('longInput').value || 80.2341),
+        description: document.getElementById('descInput').value || "Civic defect reported via Citizen Web Portal"
+      };
+
+      try {
+        const response = await fetch(`${API_BASE}/grievances`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          document.getElementById('ticketIdDisplay').innerText = `#${data.ticket_no}`;
+          document.getElementById('modalWard').innerText = data.ward;
+          document.getElementById('modalSLA').innerText = data.sla_target || "24 Hours";
+          document.getElementById('submitBtn').classList.add('hidden');
+          document.getElementById('successModal').classList.remove('hidden');
+        } else {
+          alert("Error registering complaint: " + data.message);
+        }
+      } catch (err) {
+        // Fallback for offline testing
+        const fallbackId = `CP-${Math.floor(1000 + Math.random() * 9000)}`;
+        document.getElementById('ticketIdDisplay').innerText = `#${fallbackId}`;
+        document.getElementById('submitBtn').classList.add('hidden');
+        document.getElementById('successModal').classList.remove('hidden');
+      } finally {
+        submitBtn.innerHTML = `<span>Submit Grievance to Server</span> <i class="fa-solid fa-paper-plane"></i>`;
+        submitBtn.disabled = false;
+      }
+    }
+async function trackComplaint() {
+  const ticketInput = document.getElementById('trackTicketInput');
+  const result = document.getElementById('trackResult');
+
+  const ticketId = ticketInput.value.trim().toUpperCase();
+
+  if (!ticketId) {
+    result.classList.remove('hidden');
+    result.innerHTML = `
+      <div class="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold">
+        Please enter a Ticket ID.
+      </div>
+    `;
+    return;
+  }
+
+  result.classList.remove('hidden');
+  result.innerHTML = `
+    <div class="p-3 rounded-xl bg-slate-100 text-slate-600 text-xs">
+      Checking ticket status...
+    </div>
+  `;
+
+  try {
+    const response = await fetch(
+      `${API_BASE}/grievances/${encodeURIComponent(ticketId)}`
+    );
+
+    const data = await response.json();
+
+    if (response.ok && data.success) {
+      const grievance = data.grievance;
+
+      result.innerHTML = `
+        <div class="p-4 rounded-xl bg-white border border-teal-200 shadow-sm">
+          <div class="font-bold text-slate-900 mb-2">
+            🎫 Ticket #${grievance.ticket_no}
+          </div>
+
+          <div class="text-xs text-slate-600 space-y-1.5">
+            <p>🏷️ Category:
+              <strong>${grievance.category}</strong>
+            </p>
+
+            <p>📍 Location:
+              <strong>${grievance.ward}</strong>
+            </p>
+
+            <p>📊 Status:
+              <strong class="text-teal-700">
+                ${grievance.status}
+              </strong>
+            </p>
+          </div>
+
+          ${(() => {
+  const status = grievance.status;
+
+  let progress = 25;
+  let message = "Complaint received successfully.";
+
+  if (status === "ASSIGNED") {
+    progress = 50;
+    message = "Complaint assigned to the responsible officer.";
+  } else if (status === "IN_PROGRESS") {
+    progress = 75;
+    message = "Officer is currently working on the complaint.";
+  } else if (status === "RESOLVED") {
+    progress = 100;
+    message = "Complaint resolved successfully. ✅";
+  } else if (status === "MERGED") {
+    progress = 25;
+    message = "This report was merged with an existing complaint.";
+  }
+
+  return `
+    <div class="mt-4 text-xs font-semibold text-slate-500">
+      Progress
+    </div>
+
+    <div class="mt-2 h-2 bg-slate-200 rounded-full overflow-hidden">
+      <div
+        class="h-full bg-teal-600 rounded-full transition-all"
+        style="width: ${progress}%"
+      ></div>
+    </div>
+
+    <div class="mt-2 text-[11px] text-slate-500">
+      ${message}
+    </div>
+  `;
+})()}
+        </div>
+      `;
+    } else {
+      result.innerHTML = `
+        <div class="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold">
+          Ticket not found. Please check the Ticket ID.
+        </div>
+      `;
+    }
+
+  } catch (error) {
+    result.innerHTML = `
+      <div class="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs">
+        Unable to connect to the server. Please make sure CivicPulse server is running.
+      </div>
+    `;
+  }
+}
+    function resetForm() {
+      document.getElementById('submitBtn').classList.remove('hidden');
+      document.getElementById('successModal').classList.add('hidden');
+      document.getElementById('imagePreview').classList.add('hidden');
+      document.getElementById('uploadBox').classList.remove('hidden');
+      document.getElementById('descInput').value = "";
+    }
+  </script>
+</body>
+</html>

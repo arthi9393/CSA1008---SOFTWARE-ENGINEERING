@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CivicPulse - Interactive UI Wireframe & Screen Flow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .pulse-amber { animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+
+  <!-- TOP APP BAR -->
+  <header class="bg-[#1B3A5C] border-b border-teal-500/30 px-6 py-4 flex flex-wrap items-center justify-between shadow-lg">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#1C7293] to-teal-400 flex items-center justify-center text-white shadow-md">
+        <i class="fa-solid fa-city text-xl"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold tracking-wide text-white">CivicPulse <span class="text-xs bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded-full border border-teal-400/40">UI Wireframe Flow</span></h1>
+        <p class="text-xs text-slate-300">Click the interactive buttons below to test screen-to-screen navigation</p>
+      </div>
+    </div>
+
+    <!-- Portal Switcher Buttons -->
+    <div class="flex bg-slate-900/80 p-1.5 rounded-xl border border-slate-700 mt-2 sm:mt-0 space-x-2">
+      <button onclick="switchPortal('citizen')" id="tab-citizen" class="px-4 py-2 rounded-lg text-sm font-semibold transition bg-[#1C7293] text-white shadow">
+        <i class="fa-solid fa-mobile-screen-button mr-2"></i>1. Citizen Mobile Flow (4 Screens)
+      </button>
+      <button onclick="switchPortal('officer')" id="tab-officer" class="px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-400 hover:text-white">
+        <i class="fa-solid fa-desktop mr-2"></i>2. Municipal Admin Flow (3 Screens)
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN INTERACTIVE CANVAS -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- LEFT PANEL: FLOW DIAGRAM & STEP TRACKER (Col 4) -->
+    <div class="lg:col-span-4 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+          <h2 class="font-bold text-teal-400 text-sm tracking-wider uppercase flex items-center">
+            <i class="fa-solid fa-route mr-2"></i>Screen Navigation Map
+          </h2>
+          <span id="flow-badge" class="text-xs bg-blue-500/20 text-blue-300 px-2.5 py-1 rounded-md border border-blue-400/30">Citizen Mode</span>
+        </div>
+
+        <!-- Citizen Flow Steps -->
+        <div id="citizen-flow-steps" class="space-y-3">
+          <div id="step-c1" class="p-3 rounded-xl border border-teal-500/60 bg-teal-950/40 cursor-pointer transition" onclick="showCitizenScreen(1)">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-teal-400">SCREEN C-1</span>
+              <i class="fa-solid fa-arrow-right text-xs text-teal-400"></i>
+            </div>
+            <p class="font-semibold text-sm text-white mt-1">Quick Report Intake</p>
+            <p class="text-xs text-slate-400 mt-0.5">Camera snap, auto-GPS drop & issue tags</p>
+          </div>
+
+          <div id="step-c2" class="p-3 rounded-xl border border-slate-800 bg-slate-800/40 cursor-pointer transition opacity-60" onclick="showCitizenScreen(2)">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-400">SCREEN C-2</span>
+              <i class="fa-solid fa-arrow-right text-xs text-slate-500"></i>
+            </div>
+            <p class="font-semibold text-sm text-white mt-1">AI Triage & Verification</p>
+            <p class="text-xs text-slate-400 mt-0.5">Severity score, duplicate check & ticket ID</p>
+          </div>
+
+          <div id="step-c3" class="p-3 rounded-xl border border-slate-800 bg-slate-800/40 cursor-pointer transition opacity-60" onclick="showCitizenScreen(3)">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-400">SCREEN C-3</span>
+              <i class="fa-solid fa-arrow-right text-xs text-slate-500"></i>
+            </div>
+            <p class="font-semibold text-sm text-white mt-1">Live Status Tracker</p>
+            <p class="text-xs text-slate-400 mt-0.5">Real-time timeline, officer dispatch & map</p>
+          </div>
+
+          <div id="step-c4" class="p-3 rounded-xl border border-slate-800 bg-slate-800/40 cursor-pointer transition opacity-60" onclick="showCitizenScreen(4)">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-400">SCREEN C-4</span>
+              <i class="fa-solid fa-check text-xs text-emerald-400"></i>
+            </div>
+            <p class="font-semibold text-sm text-white mt-1">Citizen Feedback & Karma</p>
+            <p class="text-xs text-slate-400 mt-0.5">Before vs After comparison & 5-star rating</p>
+          </div>
+        </div>
+
+        <!-- Officer Flow Steps (Initially Hidden) -->
+        <div id="officer-flow-steps" class="space-y-3 hidden">
+          <div id="step-a1" class="p-3 rounded-xl border border-teal-500/60 bg-teal-950/40 cursor-pointer transition" onclick="showOfficerScreen(1)">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-teal-400">SCREEN A-1</span>
+              <i class="fa-solid fa-arrow-right text-xs text-teal-400"></i>
+            </div>
+            <p class="font-semibold text-sm text-white mt-1">Command Center & GIS Map</p>
+            <p class="text-xs text-slate-400 mt-0.5">Live heatmap, KPI counters & ticket queue</p>
+          </div>
+
+          <div id="step-a2" class="p-3 rounded-xl border border-slate-800 bg-slate-800/40 cursor-pointer transition opacity-60" onclick="showOfficerScreen(2)">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-400">SCREEN A-2</span>
+              <i class="fa-solid fa-arrow-right text-xs text-slate-500"></i>
+            </div>
+            <p class="font-semibold text-sm text-white mt-1">Ticket Inspection & SLA Timer</p>
+            <p class="text-xs text-slate-400 mt-0.5">AI classification review & officer dispatch</p>
+          </div>
+
+          <div id="step-a3" class="p-3 rounded-xl border border-slate-800 bg-slate-800/40 cursor-pointer transition opacity-60" onclick="showOfficerScreen(3)">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-400">SCREEN A-3</span>
+              <i class="fa-solid fa-check text-xs text-emerald-400"></i>
+            </div>
+            <p class="font-semibold text-sm text-white mt-1">Field Resolution Proof</p>
+            <p class="text-xs text-slate-400 mt-0.5">GPS-verified 'After' photo upload</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Tip Box -->
+      <div class="mt-6 p-4 rounded-xl bg-gradient-to-br from-slate-900 to-[#1B3A5C]/40 border border-slate-700/60">
+        <div class="flex items-center space-x-2 text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">
+          <i class="fa-solid fa-lightbulb"></i>
+          <span>Interactive Tip</span>
+        </div>
+        <p id="dynamic-tip" class="text-xs text-slate-300 leading-relaxed">
+          Click the glowing <strong class="text-teal-300">"Submit Grievance"</strong> button on Screen C-1 to simulate submitting a complaint and triggering the AI model!
+        </p>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: INTERACTIVE PHONE / DASHBOARD DISPLAY (Col 8) -->
+    <div class="lg:col-span-8 bg-slate-900/50 border border-slate-800 rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center min-h-[620px] shadow-2xl relative overflow-hidden">
+
+      <!-- ============================================================ -->
+      <!-- CITIZEN SCREEN 1: QUICK REPORT (MOBILE MOCKUP) -->
+      <!-- ============================================================ -->
+      <div id="citizen-screen-1" class="w-full max-w-sm bg-slate-900 border-2 border-slate-700 rounded-3xl p-5 shadow-2xl space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+            <span class="text-xs font-bold text-slate-300">Report Civic Defect</span>
+          </div>
+          <span class="text-xs text-teal-400 font-mono">Screen C-1</span>
+        </div>
+
+        <!-- Camera Upload Box -->
+        <div class="border-2 border-dashed border-teal-500/50 rounded-2xl p-6 flex flex-col items-center justify-center bg-teal-950/20 text-center cursor-pointer hover:bg-teal-950/40 transition">
+          <i class="fa-solid fa-camera text-3xl text-teal-400 mb-2"></i>
+          <p class="text-sm font-semibold text-slate-200">Tap to Capture Photo</p>
+          <p class="text-xs text-slate-400">Pothole, Waste, Streetlight, Leak</p>
+        </div>
+
+        <!-- GPS Location Indicator -->
+        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-800/80 border border-slate-700">
+          <div class="flex items-center space-x-2 text-xs">
+            <i class="fa-solid fa-location-crosshairs text-amber-400"></i>
+            <div>
+              <p class="font-bold text-slate-200">Auto-GPS Detected</p>
+              <p class="text-slate-400 text-[11px]">12.9716° N, 77.5946° E (Ward 14)</p>
+            </div>
+          </div>
+          <span class="text-emerald-400 text-xs font-bold bg-emerald-500/10 px-2 py-0.5 rounded">±4m</span>
+        </div>
+
+        <!-- Quick Tags -->
+        <div>
+          <label class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Select Category</label>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <button class="p-2 rounded-lg bg-[#1C7293] text-white font-semibold text-center border border-teal-400/40 flex items-center justify-center space-x-1.5">
+              <i class="fa-solid fa-road"></i><span>Pothole (Road)</span>
+            </button>
+            <button class="p-2 rounded-lg bg-slate-800 text-slate-300 font-medium text-center border border-slate-700 hover:bg-slate-700 flex items-center justify-center space-x-1.5">
+              <i class="fa-solid fa-trash-can"></i><span>Garbage Dump</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Description Box -->
+        <div>
+          <textarea class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-teal-400 placeholder-slate-500" rows="2" placeholder="Brief details or landmarks (e.g. near Govt School)..."></textarea>
+        </div>
+
+        <!-- SUBMIT TRIGGER BUTTON -->
+        <button onclick="showCitizenScreen(2)" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#1C7293] to-teal-500 hover:from-teal-600 hover:to-teal-400 text-white font-bold text-sm shadow-lg shadow-teal-500/20 flex items-center justify-center space-x-2 transition transform active:scale-95">
+          <span>Submit Grievance</span>
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- CITIZEN SCREEN 2: AI TRIAGE MODAL -->
+      <!-- ============================================================ -->
+      <div id="citizen-screen-2" class="w-full max-w-sm bg-slate-900 border-2 border-slate-700 rounded-3xl p-5 shadow-2xl space-y-4 hidden">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <span class="text-xs font-bold text-emerald-400 flex items-center">
+            <i class="fa-solid fa-circle-check mr-1.5"></i>Ticket Created
+          </span>
+          <span class="text-xs text-teal-400 font-mono">Screen C-2</span>
+        </div>
+
+        <!-- Ticket Card -->
+        <div class="text-center p-4 bg-gradient-to-b from-[#1B3A5C]/40 to-slate-800/80 rounded-2xl border border-teal-500/30">
+          <span class="text-[11px] text-teal-300 uppercase tracking-widest font-bold">Ticket ID</span>
+          <h3 class="text-2xl font-extrabold text-white mt-0.5 tracking-wider">#CP-1049</h3>
+          <p class="text-xs text-slate-300 mt-1">Assigned to: <strong class="text-white">Ward 14 Road Maintenance</strong></p>
+        </div>
+
+        <!-- AI Model Insights Box -->
+        <div class="p-3.5 rounded-xl bg-slate-800/90 border border-slate-700 space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-400 flex items-center"><i class="fa-solid fa-brain text-teal-400 mr-1.5"></i>AI Category Match</span>
+            <span class="font-bold text-teal-300">Pothole (94.2%)</span>
+          </div>
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-400 flex items-center"><i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1.5"></i>Severity Score</span>
+            <span class="font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded">High (Level 4/5)</span>
+          </div>
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-400 flex items-center"><i class="fa-solid fa-clone text-blue-400 mr-1.5"></i>Duplicate Check</span>
+            <span class="font-bold text-emerald-400">Unique (0 duplicates within 50m)</span>
+          </div>
+        </div>
+
+        <!-- SLA Promise -->
+        <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center justify-between">
+          <span><i class="fa-solid fa-clock mr-1.5"></i>SLA Resolution Target:</span>
+          <span class="font-bold">24 Hours</span>
+        </div>
+
+        <!-- TRACK TRIGGER BUTTON -->
+        <button onclick="showCitizenScreen(3)" class="w-full py-3.5 rounded-xl bg-[#1C7293] hover:bg-teal-600 text-white font-bold text-sm shadow-lg flex items-center justify-center space-x-2 transition transform active:scale-95">
+          <span>Track Status Live</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- CITIZEN SCREEN 3: LIVE STATUS TRACKER -->
+      <!-- ============================================================ -->
+      <div id="citizen-screen-3" class="w-full max-w-sm bg-slate-900 border-2 border-slate-700 rounded-3xl p-5 shadow-2xl space-y-4 hidden">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div class="flex items-center space-x-2">
+            <span class="text-xs font-bold text-slate-300">Live Ticket Tracker</span>
+          </div>
+          <span class="text-xs text-teal-400 font-mono">Screen C-3</span>
+        </div>
+
+        <div class="flex justify-between items-center bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+          <div>
+            <span class="text-xs text-slate-400 font-mono">#CP-1049</span>
+            <h4 class="text-sm font-bold text-white">Major Pothole on Main St</h4>
+          </div>
+          <span class="text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30 px-2.5 py-1 rounded-full pulse-amber">
+            In Progress
+          </span>
+        </div>
+
+        <!-- Timeline Steps -->
+        <div class="space-y-3 pl-2 relative border-l-2 border-slate-700 ml-3">
+          <div class="relative pl-6">
+            <span class="absolute -left-[31px] top-0.5 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-[9px] text-white"><i class="fa-solid fa-check"></i></span>
+            <p class="text-xs font-bold text-white">Complaint Submitted</p>
+            <p class="text-[11px] text-slate-400">10:30 AM • AI verified & categorized</p>
+          </div>
+          <div class="relative pl-6">
+            <span class="absolute -left-[31px] top-0.5 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-[9px] text-white"><i class="fa-solid fa-check"></i></span>
+            <p class="text-xs font-bold text-white">Dispatched to Officer</p>
+            <p class="text-[11px] text-slate-400">10:45 AM • Field Eng. Ramesh K.</p>
+          </div>
+          <div class="relative pl-6">
+            <span class="absolute -left-[31px] top-0.5 w-4 h-4 rounded-full bg-amber-400 flex items-center justify-center text-[9px] text-slate-900"><i class="fa-solid fa-spinner fa-spin"></i></span>
+            <p class="text-xs font-bold text-amber-300">Repair Underway</p>
+            <p class="text-[11px] text-slate-400">Field team active on site</p>
+          </div>
+        </div>
+
+        <!-- Officer Simulation Alert -->
+        <div class="p-3 bg-emerald-950/30 border border-emerald-500/40 rounded-xl text-xs text-emerald-300">
+          <p class="font-bold flex items-center"><i class="fa-solid fa-bell mr-1.5"></i>Update from Field Officer:</p>
+          <p class="text-slate-300 mt-1">"Asphalt filling completed. Photo proof uploaded."</p>
+        </div>
+
+        <!-- VERIFY & RATE BUTTON -->
+        <button onclick="showCitizenScreen(4)" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-sm shadow-lg flex items-center justify-center space-x-2 transition transform active:scale-95">
+          <span>Review & Verify Fix</span>
+          <i class="fa-solid fa-star"></i>
+        </button>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- CITIZEN SCREEN 4: VERIFICATION & FEEDBACK -->
+      <!-- ============================================================ -->
+      <div id="citizen-screen-4" class="w-full max-w-sm bg-slate-900 border-2 border-slate-700 rounded-3xl p-5 shadow-2xl space-y-4 hidden">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <span class="text-xs font-bold text-slate-300">Resolution Verification</span>
+          <span class="text-xs text-teal-400 font-mono">Screen C-4</span>
+        </div>
+
+        <!-- Before & After Comparison -->
+        <div class="grid grid-cols-2 gap-2 text-center text-xs">
+          <div class="bg-slate-800 p-2 rounded-xl border border-slate-700">
+            <div class="h-20 bg-slate-700 rounded-lg flex items-center justify-center mb-1 text-slate-400">
+              <i class="fa-solid fa-circle-exclamation text-amber-400 text-xl"></i>
+            </div>
+            <span class="text-slate-400 text-[10px]">BEFORE (Reported)</span>
+          </div>
+          <div class="bg-slate-800 p-2 rounded-xl border border-emerald-500/50">
+            <div class="h-20 bg-emerald-950/40 rounded-lg flex items-center justify-center mb-1 text-emerald-400">
+              <i class="fa-solid fa-circle-check text-emerald-400 text-xl"></i>
+            </div>
+            <span class="text-emerald-400 text-[10px]">AFTER (Repaired)</span>
+          </div>
+        </div>
+
+        <!-- Star Rating -->
+        <div class="text-center bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+          <label class="text-xs font-bold text-slate-300 block mb-2">Rate Resolution Quality</label>
+          <div class="flex justify-center space-x-2 text-amber-400 text-lg cursor-pointer">
+            <i class="fa-solid fa-star"></i>
+            <i class="fa-solid fa-star"></i>
+            <i class="fa-solid fa-star"></i>
+            <i class="fa-solid fa-star"></i>
+            <i class="fa-solid fa-star text-slate-600"></i>
+          </div>
+        </div>
+
+        <!-- CONFIRM & EARN KARMA BUTTON -->
+        <button onclick="confirmKarmaDone()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold text-sm shadow-lg flex items-center justify-center space-x-2 transition transform active:scale-95">
+          <span>Confirm Fix (+50 Karma)</span>
+          <i class="fa-solid fa-award"></i>
+        </button>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- OFFICER SCREEN 1: COMMAND CENTER (DESKTOP MOCKUP) -->
+      <!-- ============================================================ -->
+      <div id="officer-screen-1" class="w-full bg-slate-900 border-2 border-slate-700 rounded-2xl p-5 shadow-2xl space-y-4 hidden">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div class="flex items-center space-x-2">
+            <span class="text-sm font-bold text-white">Municipal Command Center & GIS Map</span>
+          </div>
+          <span class="text-xs text-teal-400 font-mono">Screen A-1</span>
+        </div>
+
+        <!-- KPI Grid -->
+        <div class="grid grid-cols-4 gap-3">
+          <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+            <p class="text-xs text-slate-400">Total Grievances</p>
+            <p class="text-lg font-bold text-white mt-1">1,482</p>
+          </div>
+          <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+            <p class="text-xs text-slate-400">Open Incidents</p>
+            <p class="text-lg font-bold text-amber-400 mt-1">345</p>
+          </div>
+          <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+            <p class="text-xs text-slate-400">Resolved Today</p>
+            <p class="text-lg font-bold text-emerald-400 mt-1">68</p>
+          </div>
+          <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+            <p class="text-xs text-slate-400">SLA Compliance</p>
+            <p class="text-lg font-bold text-teal-400 mt-1">94.2%</p>
+          </div>
+        </div>
+
+        <!-- Interactive Heatmap / Incident Table -->
+        <div class="bg-slate-800/60 rounded-xl p-3 border border-slate-700 space-y-2">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-bold text-slate-300">Live AI Incident Queue (Click row to inspect)</span>
+            <span class="text-teal-400 text-[11px]"><i class="fa-solid fa-rotate mr-1"></i>Real-time</span>
+          </div>
+
+          <!-- Table Row (Clickable) -->
+          <div onclick="showOfficerScreen(2)" class="p-3 bg-[#1B3A5C]/50 hover:bg-[#1B3A5C] border border-teal-500/50 rounded-xl flex items-center justify-between cursor-pointer transition">
+            <div class="flex items-center space-x-3">
+              <span class="font-mono font-bold text-xs text-teal-300">#CP-1049</span>
+              <div>
+                <p class="text-xs font-bold text-white">Road Crater / Deep Pothole</p>
+                <p class="text-[11px] text-slate-400">Ward 14 • High Urgency</p>
+              </div>
+            </div>
+            <div class="flex items-center space-x-3">
+              <span class="text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-mono">SLA: 23h 15m</span>
+              <i class="fa-solid fa-chevron-right text-xs text-teal-400"></i>
+            </div>
+          </div>
+
+          <div class="p-3 bg-slate-800/40 border border-slate-700 rounded-xl flex items-center justify-between opacity-60">
+            <div class="flex items-center space-x-3">
+              <span class="font-mono font-bold text-xs text-slate-400">#CP-1048</span>
+              <div>
+                <p class="text-xs font-bold text-slate-200">Streetlight Failure</p>
+                <p class="text-[11px] text-slate-400">Ward 08 • Low Urgency</p>
+              </div>
+            </div>
+            <span class="text-xs bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded font-mono">SLA: 47h 00m</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- OFFICER SCREEN 2: INCIDENT DETAIL & DISPATCH -->
+      <!-- ============================================================ -->
+      <div id="officer-screen-2" class="w-full bg-slate-900 border-2 border-slate-700 rounded-2xl p-5 shadow-2xl space-y-4 hidden">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div class="flex items-center space-x-2">
+            <button onclick="showOfficerScreen(1)" class="text-xs text-slate-400 hover:text-white mr-2"><i class="fa-solid fa-arrow-left mr-1"></i>Back</button>
+            <span class="text-sm font-bold text-white">Incident Details & Action: #CP-1049</span>
+          </div>
+          <span class="text-xs text-teal-400 font-mono">Screen A-2</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Left: Citizen Image & Meta -->
+          <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 space-y-2">
+            <h4 class="text-xs font-bold text-slate-300">Citizen Evidence & Location</h4>
+            <div class="h-28 bg-slate-700 rounded-lg flex items-center justify-center text-slate-400 text-xs">
+              [ Citizen Photo: Pothole Defect ]
+            </div>
+            <p class="text-xs text-slate-300"><i class="fa-solid fa-map-pin text-amber-400 mr-1"></i>GPS: 12.9716° N, 77.5946° E</p>
+            <p class="text-xs text-slate-400">Reported by: Citizen (+91-9876543210)</p>
+          </div>
+
+          <!-- Right: Action & SLA -->
+          <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 space-y-3 flex flex-col justify-between">
+            <div>
+              <h4 class="text-xs font-bold text-slate-300">SLA & Assignment</h4>
+              <div class="mt-2 p-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs">
+                <p class="font-bold"><i class="fa-solid fa-stopwatch mr-1"></i>SLA Countdown Active</p>
+                <p class="text-[11px] mt-0.5">Escalates to Ward Supervisor in 23h 15m</p>
+              </div>
+            </div>
+
+            <!-- RESOLVE BUTTON -->
+            <button onclick="showOfficerScreen(3)" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-xs shadow-lg flex items-center justify-center space-x-2 transition">
+              <span>Complete Repair & Upload Proof</span>
+              <i class="fa-solid fa-camera"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- OFFICER SCREEN 3: RESOLUTION & GEO-PROOF -->
+      <!-- ============================================================ -->
+      <div id="officer-screen-3" class="w-full bg-slate-900 border-2 border-slate-700 rounded-2xl p-5 shadow-2xl space-y-4 hidden">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <span class="text-sm font-bold text-white">Submit Geo-Verified Resolution</span>
+          <span class="text-xs text-teal-400 font-mono">Screen A-3</span>
+        </div>
+
+        <div class="p-4 bg-slate-800 rounded-xl border border-slate-700 space-y-3">
+          <div class="border-2 border-dashed border-emerald-500/60 rounded-xl p-5 text-center bg-emerald-950/20">
+            <i class="fa-solid fa-camera text-2xl text-emerald-400 mb-1"></i>
+            <p class="text-xs font-bold text-white">Capture 'After' Resolution Photo</p>
+            <p class="text-[11px] text-slate-400">Must be taken on-site at incident GPS coordinates</p>
+          </div>
+
+          <div class="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center justify-between">
+            <span><i class="fa-solid fa-satellite-dish mr-1"></i>Hardware GPS Check:</span>
+            <span class="font-bold">Match Verified (Distance: 3.2m)</span>
+          </div>
+        </div>
+
+        <button onclick="officerCompleteResolution()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold text-xs shadow-lg flex items-center justify-center space-x-2">
+          <span>Submit & Mark Ticket Resolved</span>
+          <i class="fa-solid fa-circle-check"></i>
+        </button>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    let currentPortal = 'citizen';
+
+    function switchPortal(portal) {
+      currentPortal = portal;
+      if(portal === 'citizen') {
+        document.getElementById('tab-citizen').className = 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-[#1C7293] text-white shadow';
+        document.getElementById('tab-officer').className = 'px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-400 hover:text-white';
+        document.getElementById('citizen-flow-steps').classList.remove('hidden');
+        document.getElementById('officer-flow-steps').classList.add('hidden');
+        document.getElementById('flow-badge').innerText = 'Citizen Mode';
+        showCitizenScreen(1);
+      } else {
+        document.getElementById('tab-officer').className = 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-[#1C7293] text-white shadow';
+        document.getElementById('tab-citizen').className = 'px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-400 hover:text-white';
+        document.getElementById('citizen-flow-steps').classList.add('hidden');
+        document.getElementById('officer-flow-steps').classList.remove('hidden');
+        document.getElementById('flow-badge').innerText = 'Officer Mode';
+        showOfficerScreen(1);
+      }
+    }
+
+    function showCitizenScreen(num) {
+      for(let i=1; i<=4; i++) {
+        document.getElementById(`citizen-screen-${i}`).classList.add('hidden');
+        const step = document.getElementById(`step-c${i}`);
+        if(i === num) {
+          step.className = 'p-3 rounded-xl border border-teal-500/60 bg-teal-950/40 cursor-pointer transition';
+          step.classList.remove('opacity-60');
+        } else {
+          step.className = 'p-3 rounded-xl border border-slate-800 bg-slate-800/40 cursor-pointer transition opacity-60';
+        }
+      }
+      document.getElementById(`citizen-screen-${num}`).classList.remove('hidden');
+
+      const tips = {
+        1: 'Click "Submit Grievance" to submit photo + GPS and trigger AI triage!',
+        2: 'AI model has analyzed image & assigned ticket #CP-1049. Click "Track Status Live"!',
+        3: 'Real-time progress updates! Field officer reported fix. Click "Review & Verify Fix"!',
+        4: 'Compare Before/After photos, give 5 stars, and click "Confirm Fix" to earn Karma!'
+      };
+      document.getElementById('dynamic-tip').innerText = tips[num];
+    }
+
+    function showOfficerScreen(num) {
+      for(let i=1; i<=3; i++) {
+        document.getElementById(`officer-screen-${i}`).classList.add('hidden');
+        const step = document.getElementById(`step-a${i}`);
+        if(i === num) {
+          step.className = 'p-3 rounded-xl border border-teal-500/60 bg-teal-950/40 cursor-pointer transition';
+          step.classList.remove('opacity-60');
+        } else {
+          step.className = 'p-3 rounded-xl border border-slate-800 bg-slate-800/40 cursor-pointer transition opacity-60';
+        }
+      }
+      document.getElementById(`officer-screen-${num}`).classList.remove('hidden');
+
+      const tips = {
+        1: 'Click on ticket #CP-1049 in the live queue to open details and start dispatch!',
+        2: 'Review AI classification and SLA timer. Click "Complete Repair & Upload Proof"!',
+        3: 'Simulates hardware GPS verification within 15m. Click "Submit & Mark Ticket Resolved"!'
+      };
+      document.getElementById('dynamic-tip').innerText = tips[num];
+    }
+
+    function confirmKarmaDone() {
+      alert('🎉 Success! Fix verified. You earned +50 Civic Karma Points. Ticket closed!');
+      showCitizenScreen(1);
+    }
+
+    function officerCompleteResolution() {
+      alert('✅ Resolution submitted with GPS verification! Citizen notified to review.');
+      showOfficerScreen(1);
+    }
+  </script>
+</body>
+</html>
