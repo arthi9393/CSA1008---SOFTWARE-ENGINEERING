@@ -54,14 +54,19 @@
 ---
 
 ## 👥 Project Team Roles & Contributions
+### What each file does
 
-| Member | Official Role | Core Technical Ownership |
-|---|---|---|
-| **Member 1** | Team Lead & Backend Architect | FastAPI Server Architecture, REST API Design, Server Routing |
-| **Member 2** | Frontend & UI/UX Engineer | Responsive Citizen Web Portal, Figma Wireframes, Geolocation API |
-| **Member 3** | GIS & Geospatial Database Engineer | Spatial Database Schema, 50m Deduplication Logic, Ward Routing |
-| **Member 4** | AI & Computer Vision Engineer | Defect Classification, Confidence Scoring, Dynamic SLA Matrix |
-| **Member 5** | QA, DevOps & Documentation Lead | Unit & Integration Testing (PyTest), JMeter Load Testing, Final Thesis |
+| File | Purpose |
+|---|---|
+| `index.html` | CivicPulse main/home page |
+| `citizen_portal.html` | Citizen complaint reporting and tracking |
+| `officer_dashboard.html` | Municipal officer dashboard |
+| `interactive_wireframe.html` | Interactive UI/wireframe demonstration |
+| `server.py` | FastAPI backend and API endpoints |
+| `civicpulse.db` | SQLite grievance database |
+| `README.md` | Project documentation |
+| `.gitignore` | Files excluded from Git tracking |
+
 
 ---
 
