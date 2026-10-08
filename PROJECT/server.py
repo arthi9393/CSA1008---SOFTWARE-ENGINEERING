@@ -173,8 +173,13 @@ class GrievanceCreate(BaseModel):
 # layer (Layer 4).
 # -------------------------------------------------------------
 def get_ward(lat: float, lon: float) -> str:
-    # Current CivicPulse demo location: Thandalam / SIMATS Engineering
-    return "Thandalam Ward 20"
+    # SIMATS Engineering / Thandalam test area
+    # Approximate demo coordinates
+    if 13.00 <= lat <= 13.06 and 79.98 <= lon <= 80.06:
+        return "Thandalam Ward 20"
+
+    # Locations outside the configured test area
+    return "Outside Greater Chennai Corporation"
 
     params = {
     "geometry": f"{lon},{lat}",
