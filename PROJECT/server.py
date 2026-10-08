@@ -1,3 +1,4 @@
+```python
 import os
 import math
 import random
@@ -30,10 +31,9 @@ app.add_middleware(
 DB_FILE = "civicpulse.db"
 
 
-# =============================================================
+# -------------------------------------------------------------
 # 1. HAVERSINE SPATIAL DISTANCE
-# =============================================================
-
+# -------------------------------------------------------------
 def get_distance_meters(
     lat1: float,
     lon1: float,
@@ -64,10 +64,9 @@ def get_distance_meters(
     return R * c
 
 
-# =============================================================
+# -------------------------------------------------------------
 # 2. AI CLASSIFICATION & TRIAGE
-# =============================================================
-
+# -------------------------------------------------------------
 def run_ai_triage(category: str, description: str):
 
     confidence = round(
@@ -82,24 +81,23 @@ def run_ai_triage(category: str, description: str):
         "WASTE": ("MEDIUM", 2, "24 Hours")
     }
 
-    sev, level, sla = urgency_scores.get(
+    severity, level, sla = urgency_scores.get(
         category.upper(),
         ("MEDIUM", 3, "48 Hours")
     )
 
     return {
         "confidence_pct": confidence,
-        "severity": sev,
+        "severity": severity,
         "urgency_level": level,
         "sla_target": sla,
         "ai_verified": True
     }
 
 
-# =============================================================
+# -------------------------------------------------------------
 # 3. DATABASE SETUP
-# =============================================================
-
+# -------------------------------------------------------------
 def init_db():
 
     conn = sqlite3.connect(DB_FILE)
@@ -107,33 +105,19 @@ def init_db():
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS grievances (
-
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-
             ticket_no TEXT UNIQUE NOT NULL,
-
             category TEXT NOT NULL,
-
             severity TEXT DEFAULT 'MEDIUM',
-
             status TEXT DEFAULT 'SUBMITTED',
-
             latitude REAL NOT NULL,
-
             longitude REAL NOT NULL,
-
             ward_name TEXT NOT NULL,
-
             description TEXT,
-
             confidence_pct REAL DEFAULT 94.0,
-
             is_duplicate BOOLEAN DEFAULT 0,
-
             master_ticket_no TEXT,
-
             created_at TEXT NOT NULL,
-
             resolved_at TEXT
         )
     """)
@@ -148,22 +132,22 @@ def init_db():
     ]
 
     if "confidence_pct" not in existing_cols:
-        cursor.execute("""
-            ALTER TABLE grievances
-            ADD COLUMN confidence_pct REAL DEFAULT 94.0
-        """)
+        cursor.execute(
+            "ALTER TABLE grievances "
+            "ADD COLUMN confidence_pct REAL DEFAULT 94.0"
+        )
 
     if "is_duplicate" not in existing_cols:
-        cursor.execute("""
-            ALTER TABLE grievances
-            ADD COLUMN is_duplicate BOOLEAN DEFAULT 0
-        """)
+        cursor.execute(
+            "ALTER TABLE grievances "
+            "ADD COLUMN is_duplicate BOOLEAN DEFAULT 0"
+        )
 
     if "master_ticket_no" not in existing_cols:
-        cursor.execute("""
-            ALTER TABLE grievances
-            ADD COLUMN master_ticket_no TEXT
-        """)
+        cursor.execute(
+            "ALTER TABLE grievances "
+            "ADD COLUMN master_ticket_no TEXT"
+        )
 
     conn.commit()
     conn.close()
@@ -172,234 +156,147 @@ def init_db():
 init_db()
 
 
-# =============================================================
-# 4. GRIEVANCE MODEL
-# =============================================================
-
+# -------------------------------------------------------------
+# 4. REQUEST MODEL
+# -------------------------------------------------------------
 class GrievanceCreate(BaseModel):
 
     category: str
-
     latitude: float
-
     longitude: float
-
     description: Optional[str] = "Civic breakdown reported"
 
 
-# =============================================================
+# -------------------------------------------------------------
 # 5. GCC WARD LOOKUP
-# =============================================================
-
+#
+# Uses official GCCPublic/GCC_AdminBoundary Ward_Boundary
+# layer (Layer 4).
+# -------------------------------------------------------------
 def get_ward(lat: float, lon: float) -> str:
-    """
-    Find the GCC ward containing the supplied GPS point.
 
-    Uses the official GCC administrative boundary
-    Ward_Boundary layer.
+    GIS_URL = (
+        "https://gisgcc.chennaicorporation.gov.in/"
+        "server/rest/services/GCCPublic/"
+        "GCC_AdminBoundary/MapServer/4/query"
+    )
 
-    If the first GIS service does not return a ward,
-    a second GCC service is attempted.
+    params = {
+        "geometry": f"{lon},{lat}",
+        "geometryType": "esriGeometryPoint",
+        "inSR": "4326",
+        "spatialRel": "esriSpatialRelIntersects",
 
-    The function never silently converts a GIS failure
-    into "Outside Greater Chennai Corporation".
-    """
+        # Important:
+        # The official Ward_Boundary layer contains
+        # fields named "ward" and "zone".
+        "outFields": "ward,zone,ward_id,zone_id,region",
 
-    # ---------------------------------------------------------
-    # Validate GPS coordinates
-    # ---------------------------------------------------------
+        "returnGeometry": "false",
+        "f": "json"
+    }
 
-    if lat < -90 or lat > 90 or lon < -180 or lon > 180:
-        return "Invalid GPS coordinates"
+    try:
 
-    # ---------------------------------------------------------
-    # GCC administrative Ward Boundary service
-    # ---------------------------------------------------------
+        query_string = urllib.parse.urlencode(params)
 
-    gis_urls = [
+        url = GIS_URL + "?" + query_string
 
-        # GCC Public administrative boundary service
-        (
-            "https://gisgcc.chennaicorporation.gov.in/"
-            "server/rest/services/GCCPublic/"
-            "GCC_AdminBoundary/MapServer/4/query"
-        ),
-
-        # Existing GCC departmental service as fallback
-        (
-            "https://gisgcc.chennaicorporation.gov.in/"
-            "server/rest/services/GCCDepts/"
-            "EDPMobile2025/FeatureServer/2/query"
-        )
-    ]
-
-    for gis_url in gis_urls:
-
-        try:
-
-            params = {
-                "geometry": f"{lon},{lat}",
-                "geometryType": "esriGeometryPoint",
-                "inSR": "4326",
-                "spatialRel": "esriSpatialRelIntersects",
-
-                # Request common ward/zone fields.
-                "outFields": "*",
-
-                "returnGeometry": "false",
-
-                "f": "json"
+        request = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": "CivicPulse/1.0"
             }
+        )
 
-            url = (
-                gis_url
-                + "?"
-                + urllib.parse.urlencode(params)
+        with urllib.request.urlopen(
+            request,
+            timeout=15
+        ) as response:
+
+            raw_data = response.read().decode(
+                "utf-8"
             )
 
-            request = urllib.request.Request(
-                url,
-                headers={
-                    "User-Agent": "CivicPulse/1.0"
-                }
-            )
+        data = json.loads(raw_data)
 
-            with urllib.request.urlopen(
-                request,
-                timeout=10
-            ) as response:
-
-                raw_data = response.read().decode(
-                    "utf-8"
-                )
-
-                data = json.loads(raw_data)
-
-            # -------------------------------------------------
-            # Check GIS service error
-            # -------------------------------------------------
-
-            if "error" in data:
-
-                print(
-                    "GCC GIS returned error:",
-                    data["error"]
-                )
-
-                continue
-
-            features = data.get(
-                "features",
-                []
-            )
-
-            if not features:
-                continue
-
-            attrs = features[0].get(
-                "attributes",
-                {}
-            )
-
-            # -------------------------------------------------
-            # Try different possible GCC field names
-            # -------------------------------------------------
-
-            ward = ""
-
-            possible_ward_fields = [
-                "ward",
-                "Ward",
-                "WARD",
-                "ward_no",
-                "Ward_No",
-                "WARD_NO",
-                "wardname",
-                "WardName",
-                "WARD_NAME",
-                "ward_name",
-                "NAME",
-                "Name"
-            ]
-
-            for field in possible_ward_fields:
-
-                value = attrs.get(field)
-
-                if value is not None and str(value).strip():
-
-                    ward = str(value).strip()
-                    break
-
-            zone = ""
-
-            possible_zone_fields = [
-                "zone",
-                "Zone",
-                "ZONE",
-                "zone_no",
-                "Zone_No",
-                "ZONE_NO",
-                "zonename",
-                "ZoneName",
-                "ZONE_NAME",
-                "zone_name"
-            ]
-
-            for field in possible_zone_fields:
-
-                value = attrs.get(field)
-
-                if value is not None and str(value).strip():
-
-                    zone = str(value).strip()
-                    break
-
-            # -------------------------------------------------
-            # Successful ward lookup
-            # -------------------------------------------------
-
-            if ward:
-
-                if zone:
-
-                    return (
-                        f"Zone {zone}, "
-                        f"Ward {ward} "
-                        f"(Greater Chennai Corporation)"
-                    )
-
-                return (
-                    f"Ward {ward} "
-                    f"(Greater Chennai Corporation)"
-                )
-
-        except Exception as e:
+        # -------------------------------------------------
+        # Check ArcGIS service error
+        # -------------------------------------------------
+        if "error" in data:
 
             print(
-                "GCC GIS lookup failed for service:",
-                gis_url
+                "GCC GIS ERROR:",
+                data["error"]
             )
 
-            print(
-                "Error:",
-                e
+            return "GCC GIS Service Error"
+
+        features = data.get(
+            "features",
+            []
+        )
+
+        print(
+            f"GCC GIS returned {len(features)} feature(s)"
+        )
+
+        # -------------------------------------------------
+        # No matching polygon
+        # -------------------------------------------------
+        if not features:
+
+            return "Ward Not Found"
+
+        attrs = features[0].get(
+            "attributes",
+            {}
+        )
+
+        ward = str(
+            attrs.get("ward") or ""
+        ).strip()
+
+        zone = str(
+            attrs.get("zone") or ""
+        ).strip()
+
+        # -------------------------------------------------
+        # Valid Zone + Ward
+        # -------------------------------------------------
+        if ward and zone:
+
+            return (
+                f"Zone {zone}, "
+                f"Ward {ward} "
+                f"(Greater Chennai Corporation)"
             )
 
-            continue
+        # -------------------------------------------------
+        # Ward available but Zone missing
+        # -------------------------------------------------
+        if ward:
 
-    # ---------------------------------------------------------
-    # Important:
-    # Do NOT falsely say outside GCC when GIS failed.
-    # ---------------------------------------------------------
+            return (
+                f"Ward {ward} "
+                f"(Greater Chennai Corporation)"
+            )
 
-    return "GCC Ward Lookup Unavailable"
+        return "Ward Not Found"
+
+    except Exception as e:
+
+        print(
+            "GCC GIS lookup failed:",
+            repr(e)
+        )
+
+        return "GCC GIS Service Unavailable"
 
 
-# =============================================================
+# -------------------------------------------------------------
 # 6. WARD API
-# =============================================================
-
+# -------------------------------------------------------------
 @app.get("/api/ward")
 def get_ward_api(
     lat: float,
@@ -419,15 +316,13 @@ def get_ward_api(
     }
 
 
-# =============================================================
+# -------------------------------------------------------------
 # 7. KPI API
-# =============================================================
-
+# -------------------------------------------------------------
 @app.get("/api/kpi")
 def get_kpi():
 
     conn = sqlite3.connect(DB_FILE)
-
     cursor = conn.cursor()
 
     cursor.execute(
@@ -436,57 +331,46 @@ def get_kpi():
 
     total = cursor.fetchone()[0]
 
-    cursor.execute("""
-        SELECT COUNT(*)
-        FROM grievances
-        WHERE status != 'RESOLVED'
-    """)
+    cursor.execute(
+        "SELECT COUNT(*) FROM grievances "
+        "WHERE status != 'RESOLVED'"
+    )
 
     active = cursor.fetchone()[0]
 
-    cursor.execute("""
-        SELECT COUNT(*)
-        FROM grievances
-        WHERE status = 'RESOLVED'
-    """)
+    cursor.execute(
+        "SELECT COUNT(*) FROM grievances "
+        "WHERE status = 'RESOLVED'"
+    )
 
     resolved = cursor.fetchone()[0]
 
     conn.close()
 
     return {
-
         "total_grievances": total,
-
         "active_pending": active,
-
         "resolved_today": resolved,
-
         "sla_compliance_rate": "94.2%"
     }
 
 
-# =============================================================
-# 8. GET SINGLE GRIEVANCE
-# =============================================================
-
+# -------------------------------------------------------------
+# 8. GET GRIEVANCE BY TICKET
+# -------------------------------------------------------------
 @app.get("/api/grievances/{ticket_no}")
 def get_grievance_by_ticket(
     ticket_no: str
 ):
 
     conn = sqlite3.connect(DB_FILE)
-
     conn.row_factory = sqlite3.Row
 
     cursor = conn.cursor()
 
     cursor.execute(
-        """
-        SELECT *
-        FROM grievances
-        WHERE ticket_no = ?
-        """,
+        "SELECT * FROM grievances "
+        "WHERE ticket_no = ?",
         (ticket_no.upper(),)
     )
 
@@ -504,9 +388,7 @@ def get_grievance_by_ticket(
     grievance = dict(row)
 
     return {
-
         "success": True,
-
         "grievance": {
             **grievance,
             "ward": grievance["ward_name"]
@@ -514,24 +396,21 @@ def get_grievance_by_ticket(
     }
 
 
-# =============================================================
+# -------------------------------------------------------------
 # 9. GET ALL GRIEVANCES
-# =============================================================
-
+# -------------------------------------------------------------
 @app.get("/api/grievances")
 def get_grievances():
 
     conn = sqlite3.connect(DB_FILE)
-
     conn.row_factory = sqlite3.Row
 
     cursor = conn.cursor()
 
-    cursor.execute("""
-        SELECT *
-        FROM grievances
-        ORDER BY id DESC
-    """)
+    cursor.execute(
+        "SELECT * FROM grievances "
+        "ORDER BY id DESC"
+    )
 
     rows = cursor.fetchall()
 
@@ -543,34 +422,30 @@ def get_grievances():
     ]
 
 
-# =============================================================
+# -------------------------------------------------------------
 # 10. CREATE GRIEVANCE
-# =============================================================
-
+# -------------------------------------------------------------
 @app.post("/api/grievances")
 def create_grievance(
     payload: GrievanceCreate
 ):
 
     conn = sqlite3.connect(DB_FILE)
-
     conn.row_factory = sqlite3.Row
 
     cursor = conn.cursor()
 
     # ---------------------------------------------------------
-    # Step A: AI Triage
+    # AI TRIAGE
     # ---------------------------------------------------------
-
     ai_result = run_ai_triage(
         payload.category,
         payload.description
     )
 
     # ---------------------------------------------------------
-    # Step B: Duplicate Detection
+    # 50-METER DUPLICATE CHECK
     # ---------------------------------------------------------
-
     cursor.execute(
         """
         SELECT *
@@ -587,42 +462,46 @@ def create_grievance(
 
     for ticket in open_tickets:
 
-        dist = get_distance_meters(
+        distance = get_distance_meters(
             payload.latitude,
             payload.longitude,
             ticket["latitude"],
             ticket["longitude"]
         )
 
-        if dist <= 50.0:
+        if distance <= 50.0:
 
-            duplicate_master = ticket[
-                "ticket_no"
-            ]
+            duplicate_master = (
+                ticket["ticket_no"]
+            )
 
             break
 
     # ---------------------------------------------------------
-    # Step C: Ticket + Ward
+    # TICKET
     # ---------------------------------------------------------
-
     ticket_no = (
         f"CP-{random.randint(1000, 9999)}"
     )
 
+    # ---------------------------------------------------------
+    # GCC WARD
+    # ---------------------------------------------------------
     ward = get_ward(
         payload.latitude,
         payload.longitude
     )
 
+    # ---------------------------------------------------------
+    # TIMESTAMP
+    # ---------------------------------------------------------
     now_str = datetime.now(
         timezone.utc
     ).isoformat()
 
     # ---------------------------------------------------------
-    # Step D: Save duplicate
+    # DUPLICATE
     # ---------------------------------------------------------
-
     if duplicate_master:
 
         cursor.execute(
@@ -641,7 +520,6 @@ def create_grievance(
                 master_ticket_no,
                 created_at
             )
-
             VALUES (
                 ?, ?, ?, 'MERGED',
                 ?, ?, ?, ?, ?,
@@ -663,34 +541,26 @@ def create_grievance(
         )
 
         conn.commit()
-
         conn.close()
 
         return {
-
             "success": True,
-
             "ticket_no": ticket_no,
-
             "is_duplicate": True,
-
             "master_ticket": duplicate_master,
-
             "ward": ward,
-
             "ai_confidence":
-                f"{ai_result['confidence_pct']}%",
-
+                f'{ai_result["confidence_pct"]}%',
             "message":
-                "Neighbor already reported this "
-                "defect within 50m. Merged into "
-                f"Master Ticket #{duplicate_master}."
+                "Neighbor already reported "
+                "this defect within 50m. "
+                f"Merged into Master Ticket "
+                f"#{duplicate_master}."
         }
 
     # ---------------------------------------------------------
-    # Step E: Save new grievance
+    # NEW UNIQUE TICKET
     # ---------------------------------------------------------
-
     cursor.execute(
         """
         INSERT INTO grievances (
@@ -706,7 +576,6 @@ def create_grievance(
             is_duplicate,
             created_at
         )
-
         VALUES (
             ?, ?, ?, 'SUBMITTED',
             ?, ?, ?, ?, ?, 0, ?
@@ -726,41 +595,30 @@ def create_grievance(
     )
 
     conn.commit()
-
     conn.close()
 
     return {
-
         "success": True,
-
         "ticket_no": ticket_no,
-
         "is_duplicate": False,
-
         "ward": ward,
-
         "severity":
             ai_result["severity"],
-
         "urgency_level":
             ai_result["urgency_level"],
-
         "ai_confidence":
-            f"{ai_result['confidence_pct']}%",
-
+            f'{ai_result["confidence_pct"]}%',
         "sla_target":
             ai_result["sla_target"],
-
         "message":
-            "AI verified defect & dispatched "
-            "to Ward Engineer."
+            "AI verified defect & "
+            "dispatched to Ward Engineer."
     }
 
 
-# =============================================================
+# -------------------------------------------------------------
 # 11. RESOLVE TICKET
-# =============================================================
-
+# -------------------------------------------------------------
 @app.patch(
     "/api/grievances/{ticket_no}/resolve"
 )
@@ -773,17 +631,13 @@ def resolve_ticket(
     ).isoformat()
 
     conn = sqlite3.connect(DB_FILE)
-
     cursor = conn.cursor()
 
     cursor.execute(
         """
         UPDATE grievances
-
-        SET
-            status = 'RESOLVED',
+        SET status = 'RESOLVED',
             resolved_at = ?
-
         WHERE ticket_no = ?
         """,
         (
@@ -793,23 +647,19 @@ def resolve_ticket(
     )
 
     conn.commit()
-
     conn.close()
 
     return {
-
         "success": True,
-
         "message":
             f"Ticket #{ticket_no} "
             "marked as RESOLVED"
     }
 
 
-# =============================================================
-# 12. SERVE FRONTEND FILES
-# =============================================================
-
+# -------------------------------------------------------------
+# 12. SERVE FRONTEND
+# -------------------------------------------------------------
 app.mount(
     "/",
     StaticFiles(
@@ -822,10 +672,9 @@ app.mount(
 )
 
 
-# =============================================================
-# 13. RUN SERVER
-# =============================================================
-
+# -------------------------------------------------------------
+# 13. LOCAL DEVELOPMENT
+# -------------------------------------------------------------
 if __name__ == "__main__":
 
     import uvicorn
@@ -835,3 +684,4 @@ if __name__ == "__main__":
         host="127.0.0.1",
         port=8000
     )
+```
