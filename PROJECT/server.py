@@ -185,12 +185,9 @@ def get_ward(lat: float, lon: float) -> str:
         "geometryType": "esriGeometryPoint",
         "inSR": "4326",
         "spatialRel": "esriSpatialRelIntersects",
-        # Important:
-        # The official Ward_Boundary layer contains
-        # fields named "ward" and "zone".
-        "outFields": "ward,zone,ward_id,zone_id,region",
-
+        "outFields": "ward",
         "returnGeometry": "false",
+        "outSR": "4326",
         "f": "json"
     }
 
@@ -199,6 +196,8 @@ def get_ward(lat: float, lon: float) -> str:
         query_string = urllib.parse.urlencode(params)
 
         url = GIS_URL + "?" + query_string
+
+        print("GCC GIS URL:", url)
 
         request = urllib.request.Request(
             url,
@@ -209,18 +208,15 @@ def get_ward(lat: float, lon: float) -> str:
 
         with urllib.request.urlopen(
             request,
-            timeout=15
+            timeout=20
         ) as response:
 
-            raw_data = response.read().decode(
-                "utf-8"
-            )
+            raw_data = response.read().decode("utf-8")
 
         data = json.loads(raw_data)
 
-        # -------------------------------------------------
-        # Check ArcGIS service error
-        # -------------------------------------------------
+        print("GCC GIS response:", data)
+
         if "error" in data:
 
             print(
@@ -230,54 +226,31 @@ def get_ward(lat: float, lon: float) -> str:
 
             return "GCC GIS Service Error"
 
-        features = data.get(
-            "features",
-            []
-        )
+        features = data.get("features", [])
 
         print(
-            f"GCC GIS returned {len(features)} feature(s)"
+            "GCC GIS features:",
+            len(features)
         )
 
-        # -------------------------------------------------
-        # No matching polygon
-        # -------------------------------------------------
         if not features:
 
             return "Ward Not Found"
 
-        attrs = features[0].get(
+        attributes = features[0].get(
             "attributes",
             {}
         )
 
         ward = str(
-            attrs.get("ward") or ""
+            attributes.get("ward") or ""
         ).strip()
 
-        zone = str(
-            attrs.get("zone") or ""
-        ).strip()
-
-        # -------------------------------------------------
-        # Valid Zone + Ward
-        # -------------------------------------------------
-        if ward and zone:
-
-            return (
-                f"Zone {zone}, "
-                f"Ward {ward} "
-                f"(Greater Chennai Corporation)"
-            )
-
-        # -------------------------------------------------
-        # Ward available but Zone missing
-        # -------------------------------------------------
         if ward:
 
             return (
                 f"Ward {ward} "
-                f"(Greater Chennai Corporation)"
+                "(Greater Chennai Corporation)"
             )
 
         return "Ward Not Found"
@@ -290,7 +263,6 @@ def get_ward(lat: float, lon: float) -> str:
         )
 
         return "GCC GIS Service Unavailable"
-
 
 # -------------------------------------------------------------
 # 6. WARD API
