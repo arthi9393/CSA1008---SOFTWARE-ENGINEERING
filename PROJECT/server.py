@@ -173,12 +173,8 @@ class GrievanceCreate(BaseModel):
 # layer (Layer 4).
 # -------------------------------------------------------------
 def get_ward(lat: float, lon: float) -> str:
-
-    GIS_URL = (
-        "https://gisgcc.chennaicorporation.gov.in/"
-        "server/rest/services/GCCPublic/"
-        "GCC_AdminBoundary/MapServer/4/query"
-    )
+    # Current CivicPulse demo location: Thandalam / SIMATS Engineering
+    return "Thandalam Ward 20"
 
     params = {
     "geometry": f"{lon},{lat}",
