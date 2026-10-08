@@ -181,16 +181,17 @@ def get_ward(lat: float, lon: float) -> str:
     )
 
     params = {
-        "geometry": f"{lon},{lat}",
-        "geometryType": "esriGeometryPoint",
-        "inSR": "4326",
-        "spatialRel": "esriSpatialRelIntersects",
-        "outFields": "ward",
-        "returnGeometry": "false",
-        "outSR": "4326",
-        "f": "json"
-    }
-
+    "geometry": f"{lon},{lat}",
+    "geometryType": "esriGeometryPoint",
+    "inSR": "4326",
+    "spatialRel": "esriSpatialRelIntersects",
+    "outFields": "ward",
+    "returnGeometry": "false",
+    "returnZ": "false",
+    "returnM": "false",
+    "f": "json"
+}
+    
     try:
 
         query_string = urllib.parse.urlencode(params)
