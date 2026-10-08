@@ -1,4 +1,3 @@
-```python
 import os
 import math
 import random
@@ -186,7 +185,6 @@ def get_ward(lat: float, lon: float) -> str:
         "geometryType": "esriGeometryPoint",
         "inSR": "4326",
         "spatialRel": "esriSpatialRelIntersects",
-
         # Important:
         # The official Ward_Boundary layer contains
         # fields named "ward" and "zone".
@@ -684,4 +682,3 @@ if __name__ == "__main__":
         host="127.0.0.1",
         port=8000
     )
-```
